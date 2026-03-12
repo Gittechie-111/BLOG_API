@@ -6,6 +6,36 @@ app = Flask(__name__)
 app.config.from_object(Config)
 db = SQLAlchemy(app)
 
+# Hardcoded list of posts (temporary)
+posts = [
+    {'id': 1, 'title': 'First Post', 'content': 'Hello world!', 'created_at': '2025-03-01'},
+    {'id': 2, 'title': 'Second Post', 'content': 'Another post', 'created_at': '2025-03-02'}
+]
+
+class Post(db.model):
+    ___tablename__ ='posts'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@app.route('/posts', methods=['GET'])
+def get_posts():
+    return jsonify(posts)
+
 # Test route
 @app.route('/')
 def home():
