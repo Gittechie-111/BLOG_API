@@ -1,0 +1,41 @@
+# Virtual environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Python bytecode and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Environment variables (secrets)
+.env
+.flaskenv
+
+# Database (if you ever put a SQLite file, but you're using MySQL)
+*.db
+*.sqlite3
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
