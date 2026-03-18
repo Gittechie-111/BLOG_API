@@ -2,6 +2,7 @@ from flask import Flask
 from.config import Config
 from .db import close_db
 from .routes.posts import posts_bp
+from .routes.comments import comments_bp 
 
 def create_app():
     #create app instance
@@ -12,6 +13,7 @@ def create_app():
 
     #register blueprints
     app.register_blueprint(posts_bp)
+    app.register_blueprint(comments_bp)
 
     # Teardown: close DB connection after each request
     app.teardown_appcontext(close_db)
@@ -19,7 +21,7 @@ def create_app():
     return app
 
 # Create the app instance
-app = create_app()
+# app = create_app()
 
 # # Run the app if this file is executed directly
 # if __name__ == '__main__':
