@@ -21,14 +21,14 @@ def create_app():
 # Create the app instance
 app = create_app()
 
-# Run the app if this file is executed directly
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
-    # debug=True - Auto-restart on code changes
+# # Run the app if this file is executed directly
+# if __name__ == '__main__':
+#     app.run(debug=True, host='0.0.0.0', port=5000)
+#     # debug=True - Auto-restart on code changes
 
-    # host='0.0.0.0' - Allow connections from other devices on network
+#     # host='0.0.0.0' - Allow connections from other devices on network
 
-    # port=5000 - Default Flask port
+#     # port=5000 - Default Flask port
 
 
 
