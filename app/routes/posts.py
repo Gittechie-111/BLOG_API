@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, g, request
 from ..db import get_db
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 posts_bp=Blueprint('posts', __name__, url_prefix='/posts')
 
@@ -22,7 +23,7 @@ def test_db():
 #helper function to fetch a single post(used in multiple routes)
 def fetch_post(post_id):
     db = get_db()
-    cursor = db.cursor()
+    cursor = db.cursor(dictionary=True)
     cursor.execute("SELECT * FROM posts WHERE id=%s", (post_id,))
     post = cursor.fetchone()
     cursor.close()
@@ -35,7 +36,7 @@ def get_post(post_id):
     post = fetch_post(post_id)
     if post:
         return jsonify(post)
-    return jsonify({"error" : "Post not found"}) , 400
+    return jsonify({"error" : "Post not found"}) , 404
 
 #get all posts
 @posts_bp.route('/', methods=['GET'])
@@ -59,31 +60,45 @@ def get_posts():
 
 #creating a post
 @posts_bp.route('/', methods=['POST'])
+@jwt_required()
 def create_post():
+    user_id = get_jwt_identity()           #retruns a string like "3"
+    user_id = int(user_id)                # convert to int if your table expects int
     data = request.get_json()
 
     if not data:
         return jsonify({'error' : "Data not provided"}), 400
     if not 'title':
-        return jsonify({'error' : "Ttitle is required"}), 400
+        return jsonify({'error' : "Title is required"}), 400
     if not 'content':
         return jsonify({'error': 'Content is required'}), 400
     
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("INSERT INTO posts (title, content) VALUES (%s, %s)", (data['title'], data['content']))
+    cursor.execute("INSERT INTO posts (title, content, user_id) VALUES (%s, %s, %s)", (data['title'], data['content'], user_id))
     db.commit()
     new_id = cursor.lastrowid
     cursor.close()
-    post = fetch_post(new_id)
-    return jsonify(post), 201
+    # Fetch the newly created post (using dictionary cursor)
+    cursor = db.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM posts WHERE id = %s", (new_id,))
+    new_post = cursor.fetchone()
+    cursor.close()
+    return jsonify(new_post), 201
 
 #updating a post
 @posts_bp.route('/<int:post_id>', methods=['PUT'])
+@jwt_required()
 def update_post(post_id):
+    #Since post['user_id'] is an integer, the comparison will be int != str, which will be True even if the numeric values match. 
+    # So you should convert user_id to int for consistency
+    user_id = int(get_jwt_identity())
+    #checking if post exists
     post = fetch_post(post_id)
     if not post:
         return jsonify({'error': 'Post not found'}), 400
+    if post['user_id'] != user_id:
+        return jsonify({'error': 'Not authorized to edit this post'}), 403
     
     data = request.get_json()
     if not data:
@@ -102,7 +117,7 @@ def update_post(post_id):
         values.append(data['content'])
 
     if not updates:
-        return jsonify({'error': 'No data to update'}), 400
+        return jsonify({'error': 'No fields to update'}), 400
     
     values.append(post_id)
     
@@ -122,7 +137,14 @@ def update_post(post_id):
 
 #deleting a post
 @posts_bp.route('/<int:post_id>', methods=['DELETE'])
+@jwt_required()
 def delete_post(post_id):
+    user_id = int(get_jwt_identity())
+    post = fetch_post(post_id)
+    if not post:
+        return jsonify({'error': 'Post not found'}), 404
+    if post['user_id'] != user_id:
+        return jsonify({'error': 'Not authorized to delete this post'}), 403
     db = get_db()
     cursor = db.cursor()
     cursor.execute("DELETE FROM posts WHERE id=%s", (post_id,))
@@ -132,5 +154,5 @@ def delete_post(post_id):
 
     if affected_rows == 0:
         return jsonify({'error': 'Post not found'}), 404
-    return jsonify({'message': 'Post deleted successfully!'}, 200)
+    return jsonify({'message': 'Post deleted successfully!'}), 200
 

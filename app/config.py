@@ -1,5 +1,6 @@
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 #load environment variables from .env file
 load_dotenv()
@@ -13,10 +14,15 @@ class Config:
 
     # Security
     SECRET_KEY = os.getenv('SECRET_KEY')
+    JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
     
     # Flask settings
     DEBUG = os.getenv('DEBUG', 'False') == 'True'
     
     # Pagination
     ITEMS_PER_PAGE = 20
+
+    #EXPIRATION TIME
+    JWT_ACESS_TOKEN_EXPIRES = timedelta(minutes=15)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=7)
 
